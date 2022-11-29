@@ -7,4 +7,4 @@ class Process:
         self.data_item = data_item
 
     def __str__(self):
-        return (f"{self.action}{self.transaction_id}({self.data_item})")
+        return (f"{self.action}{self.transaction_id}({self.data_item if self.data_item else ''})")

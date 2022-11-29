@@ -1,4 +1,5 @@
 from utils import file
+from modules.SimpleLocking import simple_locking
 
 import sys
 
@@ -6,8 +7,7 @@ import sys
 def main():
     sys.path.append("/")
     process_array, data_item_array, transaction_array = file.read('case1.txt')
-    print(process_array)
-    print(data_item_array)
-    print(transaction_array)
+
+    simple_locking(process_array)
 
 main()
