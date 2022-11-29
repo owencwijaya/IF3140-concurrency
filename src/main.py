@@ -1,13 +1,31 @@
 from utils import file
-from modules.SimpleLocking import simple_locking
+from manager.SimpleLocking import SimpleLockingManager
 
 import sys
 
 
 def main():
-    sys.path.append("/")
-    process_array, data_item_array, transaction_array = file.read('case1.txt')
+    if (len(sys.argv) != 3):
+        print('''
+        Usage: python main.py [input file] [algorithm]
+        
+        [input file] nama file (beserta ekstensi) yang ingin dibaca
+        [algorithm] mempunyai tiga opsi:
+            - 'slock': algoritma Simple Locking (dengan exclusive locks)
+            - 'occ'  : algoritma Optimistic Concurrency Control
+            - 'mvcc' : algoritma Multiversion Concurrency Control
+        ''')
+        return
 
-    simple_locking(process_array)
+    file_path = sys.argv[1]
+    algorithm = sys.argv[2].lower()
+
+    process_array, data_item_array, transaction_array = file.read(file_path)
+
+    if (algorithm == "slock"):
+        manager = SimpleLockingManager()
+        manager.start(process_array)
+    else:
+        print("Algoritma belum diimplementasikan :(")
 
 main()

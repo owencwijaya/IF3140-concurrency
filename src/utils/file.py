@@ -16,7 +16,7 @@ def read(file_name: str):
     data_item_array = []
     transaction_array = []
 
-    with open(f"test/{file_name}") as f:
+    with open(file_name) as f:
         lines = f.readlines()
 
 
