@@ -1,6 +1,6 @@
 from utils import file
 from manager.SimpleLocking import SimpleLockingManager
-
+from manager.Optimistic import OptimisticManager
 import sys
 
 
@@ -12,7 +12,7 @@ def main():
         [input file] nama file (beserta ekstensi) yang ingin dibaca
         [algorithm] mempunyai tiga opsi:
             - 'slock': algoritma Simple Locking (dengan exclusive locks)
-            - 'occ'  : algoritma Optimistic Concurrency Control
+            - 'socc' : algoritma Simple Optimistic Concurrency Control
             - 'mvcc' : algoritma Multiversion Concurrency Control
         ''')
         return
@@ -24,6 +24,9 @@ def main():
 
     if (algorithm == "slock"):
         manager = SimpleLockingManager()
+        manager.start(process_array)
+    elif (algorithm == "socc"):
+        manager = OptimisticManager()
         manager.start(process_array)
     else:
         print("Algoritma belum diimplementasikan :(")

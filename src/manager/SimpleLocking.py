@@ -1,6 +1,7 @@
 from type.process import Process
-from type.lock import Lock
-from type.transaction import Transaction
+from type.SimpleLocking.lock import Lock
+from type.SimpleLocking.transaction import Transaction
+
 from typing import List
 import copy
 
@@ -24,8 +25,6 @@ class SimpleLockingManager:
         for transaction in self.transaction_list:
             if (transaction.id == process.transaction_id and (
                 transaction.state == ABORTED or transaction.state == WAITING)):
-                print(transaction.state == ABORTED)
-                print(transaction.state == WAITING)
                 transaction.blocked_processes.append(process)
                 return True
         
@@ -136,14 +135,6 @@ class SimpleLockingManager:
         if (len(self.lock_list) == 0 or not conflicting):
             print(f'[{process}] Locking {process.data_item} for transaction {process.transaction_id}')
             self.lock_list.append(Lock(process.data_item, process.transaction_id))
-
-            # current_transaction = find_transaction(process.transaction_id)
-            # current_transaction.locked_items.append(process.data_item)
-
-            # for transaction in self.transaction_list:
-            #     if (transaction.id == current_transaction.id):
-            #         self.transaction_list.remove(transaction)
-            #         self.transaction_list.append(current_transaction)
 
             for transaction in self.transaction_list:
                 if (transaction.id == process.transaction_id):
