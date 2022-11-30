@@ -23,8 +23,8 @@ def main():
     process_array, data_item_array, transaction_array = file.read(file_path)
 
     if (algorithm == "slock"):
-        manager = SimpleLockingManager()
-        manager.start(process_array)
+        manager = SimpleLockingManager(process_array)
+        manager.start()
     elif (algorithm == "socc"):
         manager = OptimisticManager()
         manager.start(process_array)

@@ -13,12 +13,15 @@ COMMITTED = "COMMITTED"
 
 # diasumsikan selalu exclusive lock
 class SimpleLockingManager:
-
+    processes: List[Process]
     lock_list: List[Lock] = []
     transaction_list: List[Transaction] = []
     waiting_transactions: List[Transaction] = []
+    aborted_transactions: List[int] = []
     timestamp: int = 1
 
+    def __init__(self, processes: List[Process]):
+        self.processes = processes
 
 # cek apakah transaksi ini udah pernah jalan dan apakah sudah aborted / waiting
     def check_waiting(self, process: Process):
@@ -50,6 +53,7 @@ class SimpleLockingManager:
         print(f'[WOUND-WAIT] Initiating wound-wait protocol')
         if (requesting.timestamp < locking.timestamp):
             requesting.state = WAITING
+            # self.transaction_list.remove(locking)
             locking.state = ABORTED
 
             if (process not in requesting.blocked_processes):
@@ -58,11 +62,17 @@ class SimpleLockingManager:
             if (requesting not in self.waiting_transactions):
                self.waiting_transactions.append(requesting)
 
+
             if (locking in self.waiting_transactions):
                 self.waiting_transactions.remove(locking) 
+            
 
             print(f'[WOUND-WAIT] Aborting transaction {locking.id} due to wound-wait')
+
+
             self.unlock(locking.id)
+            self.aborted_transactions.append(locking.id)
+
         # kalo kebalikannya (requesting mulai setelah locking), kita tambahin yang request
         else:
             if (process not in requesting.blocked_processes):
@@ -85,6 +95,10 @@ class SimpleLockingManager:
                         if (lock.data_item == locked_item):
                             print(f'[UNLOCK] Releasing lock on {locked_item} by transaction {locking_id}')
                             self.lock_list.remove(lock)
+
+        self.lock_list = [lock for lock in self.lock_list if lock.transaction_id != locking_id]
+
+
         
 
         # cek apakah ada transaksi yang bisa dilanjutin setelah unlock
@@ -108,7 +122,8 @@ class SimpleLockingManager:
             if (len(transaction.blocked_processes) == 0):
                 print(f'[UNLOCK] Removing transaction {transaction.id} from waiting list (all operations has been executed)')
                 self.waiting_transactions.remove(transaction)
-            
+        
+
     def read(self, process: Process):
         # cek apakah ada transaksi lain yang pegang lock
         print(f'[{process}] Initiating READ on data item {process.data_item} by transaction {process.transaction_id}')
@@ -120,12 +135,12 @@ class SimpleLockingManager:
                 locking_transaction: Transaction = self.find_transaction(lock.transaction_id)
                 self.wound_wait(current_transaction, locking_transaction, process)
 
-
-    def write(self, process: Process):
-        print(f'[{process}] Initiating WRITE on data item {process.data_item} by transaction {process.transaction_id}')
+    # dijadikan 1 prosedur karena cara kerjanya sama
+    def read_write(self, process: Process):
         conflicting = False
         
         # kalo ada, cek lock tersebut
+        # print(self.lock_list)
         for lock in self.lock_list:
             if lock.data_item == process.data_item and lock.transaction_id != process.transaction_id:
                 conflicting = True
@@ -133,8 +148,17 @@ class SimpleLockingManager:
 
         # langsung kasih lock kalo misalnya lock_list kosong / ga konflik
         if (len(self.lock_list) == 0 or not conflicting):
-            print(f'[{process}] Locking {process.data_item} for transaction {process.transaction_id}')
-            self.lock_list.append(Lock(process.data_item, process.transaction_id))
+            lock_existed = False
+
+            for lock in self.lock_list:
+                if (lock.transaction_id == process.transaction_id and lock.data_item == process.data_item):
+                    print(f'[{process}] Lock has already existed on {process.data_item} by transaction {process.transaction_id}')
+                    lock_existed = True
+                    break
+            
+            if (not lock_existed):
+                print(f'[{process}] Locking {process.data_item} for transaction {process.transaction_id}')
+                self.lock_list.append(Lock(process.data_item, process.transaction_id))
 
             for transaction in self.transaction_list:
                 if (transaction.id == process.transaction_id):
@@ -154,12 +178,34 @@ class SimpleLockingManager:
 
         for transaction in self.transaction_list:
             if (transaction.id == process.transaction_id):
-                transaction.state = COMMITTED
+                self.transaction_list.remove(transaction)
 
         self.unlock(process.transaction_id)
 
+
+        for transaction_id in self.aborted_transactions:
+            for transaction in self.transaction_list:
+                if (transaction.id == transaction_id):
+                    self.transaction_list.remove(transaction)
+
+
+            print(f'[RESTART] Re-starting transaction {transaction_id} on timestamp = {self.timestamp}')
+            self.transaction_list.append(Transaction(transaction_id, AVAILABLE, self.timestamp))
+            self.aborted_transactions.remove(transaction_id)
+            self.timestamp += 1
+
+
+            for process in self.processes:
+                if (process.transaction_id == transaction_id):
+                    print()
+                    self.run(process)
+
+
     def run(self, process: Process):
         waiting = self.check_waiting(process)
+        if (waiting):
+            print(f"[{process}] Transaction waiting")
+            print()
         if (not waiting):
             started = self.check_started(process)
             
@@ -169,14 +215,17 @@ class SimpleLockingManager:
                 self.timestamp += 1
 
             if (process.action == 'R'):
-                self.read(process)
+                print(f'[{process}] Initiating READ on data item {process.data_item} by transaction {process.transaction_id}')
+
+                self.read_write(process)
             elif (process.action == 'W'):
-                self.write(process)
+                print(f'[{process}] Initiating WRITE on data item {process.data_item} by transaction {process.transaction_id}')
+                self.read_write(process)
             elif (process.action == 'C'):
                 self.commit(process)
         
 
-    def start(self, process_array: List[Process]):
-        for process in process_array:
+    def start(self):
+        for process in self.processes:
             print()
             self.run(process)
