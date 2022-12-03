@@ -37,10 +37,10 @@ class Transaction():
         self.finish_timestamp = timestamp
         print(f'Transaction {self.id} commits, updating finish timestamp to {timestamp}')
 
-        success = False
+        fail = True
 
         if (len(transaction_arr) == 1 and transaction_arr[0].id == self.id):
-            success = True
+            fail = False
 
         for transaction in transaction_arr:
             if (transaction.id == self.id):
@@ -50,36 +50,36 @@ class Transaction():
 
             if (transaction.start_timestamp >= self.start_timestamp):
                 print(f'Compared transaction starts after this transaction, no conflict')
+                fail = False
                 continue
             
             # cek kondisi pertama, apakah waktu finish transaksi lain < waktu transaksi sendiri
             if (transaction.finish_timestamp < self.start_timestamp):
                 print(f'Compared transaction finishes before current transaction, can be committed')
-                success = True
-                break
+                fail = False
+
 
             # cek kondisi kedua, apakah waktu finish transaksi lain di antara waktu start dan validasi
             # dan yang dibaca transaksi ini tidak ditulis transaksi lain
-            if (not(success) and self.start_timestamp < transaction.finish_timestamp < self.validation_timestamp):
+            if (fail and self.start_timestamp < transaction.finish_timestamp < self.validation_timestamp):
                 print(f'Compared transaction finishes between current transaction start and validation')
                 if (set(self.read_set).isdisjoint(transaction.write_set)):
                     print(f'Disjoint between read set and write set of compared transaction, can be committed')
-                    success = True
-                    break
+                    fail = False
                 else:
                     print(f'Intersect between read set and write set of compared transaction, cannot be committed')
-                    break
             else:
                 print(f'Compared transaction doesn\'t finish between current transaction start timestamp and validation timestamp, cannot be committed')
 
 
-            if (not success):
+            if (fail):
                 break
-        if (success):
+
+        if (not fail):
             print(f'Successfully committed transaction {self.id}!')
         else:
             print(f'Failed to commit transaction {self.id}!')
-        return success
+        return not fail
     
     def __str__(self):
         return f'T{self.id} ({self.read_set} {self.write_set})'
