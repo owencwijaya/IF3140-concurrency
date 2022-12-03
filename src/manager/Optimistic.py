@@ -52,11 +52,9 @@ class OptimisticManager():
                 
         self.timestamp += 1
 
-        for transaction in self.transaction_list:
-            print(transaction)
-
         if (not success):
             print(f'[{process}] Transaction failed at transaction {process.transaction_id}, aborting....')
+            self.transaction_list.remove(current_transaction)
         return success
 
 

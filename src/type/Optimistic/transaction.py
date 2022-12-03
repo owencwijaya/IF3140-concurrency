@@ -29,7 +29,9 @@ class Transaction():
         self.finish_timestamp = timestamp
 
         success = False
-        
+        if (len(transaction_arr) == 1 and transaction_arr[0].id == self.id):
+            success = True
+
         for transaction in transaction_arr:
             if (transaction.id == self.id or transaction.start_timestamp >= self.start_timestamp):
                 continue
