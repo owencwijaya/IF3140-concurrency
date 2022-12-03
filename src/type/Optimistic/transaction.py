@@ -10,8 +10,11 @@ class Transaction():
         self.finish_timestamp: int = 10e10
 
     def write(self, timestamp: int, data_item: str):
-        if (len(self.write_set) > 0):
+        if (len(self.write_set) == 0):
             self.validation_timestamp = timestamp
+
+        if (len(self.read_set) == 0):
+            self.start_timestamp = timestamp
 
         if (data_item not in self.write_set):
             print(f'Transaction {self.id} writes data item {data_item}')
