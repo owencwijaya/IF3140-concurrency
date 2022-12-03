@@ -44,6 +44,7 @@ class Transaction():
 
         for transaction in transaction_arr:
             if (transaction.id == self.id):
+                fail = False
                 continue
 
             print(f'Comparing with transaction {transaction.id}')
