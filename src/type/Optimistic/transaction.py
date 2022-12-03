@@ -59,6 +59,7 @@ class Transaction():
             if (transaction.finish_timestamp < self.start_timestamp):
                 print(f'Compared transaction finishes before current transactionbegins, can be committed')
                 fail = False
+                continue
             else:
                 print(f'Compared transaction finishes after current transaction begins, needs further examination')
 
@@ -70,6 +71,7 @@ class Transaction():
                 if (set(self.read_set).isdisjoint(transaction.write_set)):
                     print(f'Disjoint between read set and write set of compared transaction, can be committed')
                     fail = False
+                    continue
                 else:
                     print(f'Intersect between read set and write set of compared transaction, cannot be committed')
             else:
