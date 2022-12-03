@@ -34,6 +34,7 @@ class Transaction():
         return True
 
     def commit(self, timestamp: int, transaction_arr: List['Transaction']):
+        print()
         self.finish_timestamp = timestamp
         print(f'Transaction {self.id} commits, updating finish timestamp to {timestamp}')
 
@@ -56,8 +57,10 @@ class Transaction():
             
             # cek kondisi pertama, apakah waktu finish transaksi lain < waktu transaksi sendiri
             if (transaction.finish_timestamp < self.start_timestamp):
-                print(f'Compared transaction finishes before current transaction, can be committed')
+                print(f'Compared transaction finishes before current transactionbegins, can be committed')
                 fail = False
+            else:
+                print(f'Compared transaction finishes after current transaction begins, needs further examination')
 
 
             # cek kondisi kedua, apakah waktu finish transaksi lain di antara waktu start dan validasi
@@ -80,6 +83,7 @@ class Transaction():
             print(f'Successfully committed transaction {self.id}!')
         else:
             print(f'Failed to commit transaction {self.id}!')
+        print()
         return not fail
     
     def __str__(self):
