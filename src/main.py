@@ -9,11 +9,12 @@ def main():
         print('''
         Usage: python main.py [input file] [algorithm]
         
-        [input file] nama file (beserta ekstensi) yang ingin dibaca
-        [algorithm] mempunyai tiga opsi:
-            - 'slock': algoritma Simple Locking (dengan exclusive locks)
-            - 'socc' : algoritma Simple Optimistic Concurrency Control
-            - 'mvcc' : algoritma Multiversion Concurrency Control
+        [input file] path to file (with extension)
+        [algorithm] has two options:
+            - 'slock': Simple locking algorithm (with exclusive locks only)
+            - 'socc' : Simple Optimistic Concurrency Control algorithm
+
+        Check `test` folder to see examples for input files
         ''')
         return
 
@@ -29,6 +30,6 @@ def main():
         manager = OptimisticManager()
         manager.start(process_array)
     else:
-        print("Algoritma belum diimplementasikan :(")
+        print("Algorithm not recognized! :(")
 
 main()
